@@ -1,10 +1,5 @@
 #include "pch.h"
-#include <iostream>
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <GL/freeglut.h>
+#include <auxiliar.h>
 
 int CurrentWidth = 800,
 CurrentHeight = 600,
@@ -14,6 +9,11 @@ void Initialize(int, char*[]);
 void InitWindow(int, char*[]);
 void ResizeFunction(int, int);
 void RenderFunction(void);
+
+struct ParticleGeometry
+{
+  
+};
 
 int main(int argc, char* argv[])
 {
@@ -80,4 +80,36 @@ void RenderFunction(void)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glutSwapBuffers();
+}
+
+//Shader loading code from G3D exercises
+GLuint loadShader(const char *fileName, GLenum type) {
+  unsigned int fileLen;
+  char *source = loadStringFromFile(fileName, fileLen);
+  //////////////////////////////////////////////
+  //Creación y compilación del Shader
+  GLuint shader;
+  shader = glCreateShader(type);
+  glShaderSource(shader, 1,
+    (const GLchar **)&source, (const GLint *)&fileLen);
+  glCompileShader(shader);
+  delete[] source;
+
+  //Comprobamos que se compiló bien
+  GLint compiled;
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+  if (!compiled)
+  {
+    //Calculamos una cadena de error
+    GLint logLen;
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
+    char *logString = new char[logLen];
+    glGetShaderInfoLog(shader, logLen, NULL, logString);
+    std::cout << "Error: " << logString << std::endl;
+    delete[] logString;
+    glDeleteShader(shader);
+    exit(-1);
+  }
+
+  return shader;
 }

@@ -11,4 +11,11 @@
 
 // TODO: add headers that you want to pre-compile here
 
+#include <GL/glew.h>
+#include <GL/freeglut.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+
 #endif //PCH_H
