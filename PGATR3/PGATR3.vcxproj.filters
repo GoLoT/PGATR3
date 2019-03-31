@@ -37,7 +37,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\shaders\partices.comp">
+    <None Include="..\shaders\particles.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="..\shaders\particles.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="..\shaders\particles.geo">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="..\shaders\particles.comp">
       <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>
