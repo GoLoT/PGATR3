@@ -12,7 +12,7 @@ uniform mat4 view;
 
 void main()
 {
-	gl_Position = proj*view*position;
+	gl_Position = /*proj*/view*position;
 	vColor = color;
 	vVelocity = velocity;
 	vColor = gl_Position;

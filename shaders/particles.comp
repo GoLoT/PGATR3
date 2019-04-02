@@ -44,7 +44,7 @@ main( )
 {
 	const vec3    G      = vec3( 0., -9.8, 0. );
 	const float  DT      = 0.1;
-	const vec4   SPHERE = vec4( -100., -800., 0.,  600. );
+	const vec4   SPHERE = vec4( 0., 0., 0.,  10. );
 
 	uint  gid = gl_GlobalInvocationID.x;	// the .y and .z are both 1 in this case
 

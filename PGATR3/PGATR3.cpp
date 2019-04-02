@@ -8,12 +8,12 @@
 #define NUM_PARTICLES     (1024*1024)
 #define WORK_GROUP_SIZE   128
 #define SEED              123132414
-#define XMIN              -100
-#define XMAX              100
-#define YMIN              -100
-#define YMAX              100
-#define ZMIN              -100
-#define ZMAX              100
+#define XMIN              -10
+#define XMAX              10
+#define YMIN              -10
+#define YMAX              10
+#define ZMIN              -10
+#define ZMAX              10
 #define VXMIN             -10
 #define VXMAX             10
 #define VYMIN             -10
@@ -88,6 +88,7 @@ struct ParticleCompute
   GLuint positionSSBO = 4, velocitySSBO = 5, colorSSBO = 6;
   GLuint inPosition, inVelocity, inColor;
   GLuint program;
+  bool paused = true;
 } particleCompute;
 
 inline float ranf(const float min, const float max)
@@ -123,7 +124,7 @@ void Initialize(int argc, char* argv[])
   glFrontFace(GL_CW);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glEnable(GL_CULL_FACE);
-  cameraSettings.proj = glm::perspective(glm::radians(60.0f), 1.0f, 0.1f, 400.0f);
+  cameraSettings.proj = glm::perspective(glm::radians(60.0f), 1.0f, 0.1f, 2000.0f);
   cameraSettings.view = glm::mat4(1.0f);
   cameraSettings.view[3].z = -60;
 }
@@ -212,9 +213,11 @@ void InitRenderingShader()
 {
   auto vshader = loadShader("../shaders/particles.vert", GL_VERTEX_SHADER);
   auto fshader = loadShader("../shaders/particles.frag", GL_FRAGMENT_SHADER);
+  auto gshader = loadShader("../shaders/particles.geo", GL_GEOMETRY_SHADER);
   particleShading.program = glCreateProgram();
   glAttachShader(particleShading.program, vshader);
   glAttachShader(particleShading.program, fshader);
+  glAttachShader(particleShading.program, gshader);
 
   glLinkProgram(particleShading.program);
 
@@ -306,14 +309,17 @@ void RenderFunction(void)
 
   UpdateCamera();
 
-  glUseProgram(particleCompute.program);
+  if (!particleCompute.paused) {
+	  glUseProgram(particleCompute.program);
 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleCompute.inPosition, particleCompute.positionSSBO);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleCompute.inVelocity, particleCompute.velocitySSBO);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleCompute.inColor, particleCompute.colorSSBO);
+	  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleCompute.inPosition, particleCompute.positionSSBO);
+	  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleCompute.inVelocity, particleCompute.velocitySSBO);
+	  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleCompute.inColor, particleCompute.colorSSBO);
 
-  glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	  glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
+	  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+  }
 
   glUseProgram(particleShading.program);
   if (particleShading.uView != -1)
@@ -433,6 +439,10 @@ void keyboardFunc(unsigned char key, int x, int y)
     up *= -delta * cameraSettings.cameraSpeed;
     cameraSettings.cameraPos += up;
     break;
+  case 'p':
+  case 'P':
+	  particleCompute.paused = !particleCompute.paused;
+	  break;
   default:
     std::cout << "Se ha pulsado la tecla " << key << std::endl << std::endl;
   }

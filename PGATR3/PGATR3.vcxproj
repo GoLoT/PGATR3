@@ -72,31 +72,31 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <ExecutablePath>$(MSBuildStartupDirectory)\bin\Release\Win32;$(MSBuildStartupDirectory)\bin;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(MSBuildStartupDirectory)\include;$(MSBuildProjectDirectory);$(IncludePath)</IncludePath>
-    <LibraryPath>$(MSBuildStartupDirectory)\lib\Release\Win32;$(MSBuildStartupDirectory)\lib;$(LibraryPath)</LibraryPath>
-    <SourcePath>$(MSBuildStartupDirectory)\include;$(SourcePath)</SourcePath>
+    <ExecutablePath>$(MSBuildProjectDirectory)\..\bin\Release\Win32;$(MSBuildProjectDirectory)\..\bin;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(MSBuildProjectDirectory)\..\include;$(MSBuildProjectDirectory);$(IncludePath)</IncludePath>
+    <LibraryPath>$(MSBuildProjectDirectory)\..\lib\Release\Win32;$(MSBuildProjectDirectory)\..\lib;$(LibraryPath)</LibraryPath>
+    <SourcePath>$(MSBuildProjectDirectory)\..\include;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <ExecutablePath>$(MSBuildStartupDirectory)\bin\Release\x64;$(MSBuildStartupDirectory)\bin\x64;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(MSBuildStartupDirectory)\include;$(MSBuildProjectDirectory);$(IncludePath)</IncludePath>
-    <LibraryPath>$(MSBuildStartupDirectory)\lib\Release\x64;$(MSBuildStartupDirectory)\lib\x64;$(LibraryPath)</LibraryPath>
-    <SourcePath>$(MSBuildStartupDirectory)\include;$(SourcePath)</SourcePath>
+    <ExecutablePath>$(MSBuildProjectDirectory)\..\bin\Release\x64;$(MSBuildProjectDirectory)\..\bin\x64;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(MSBuildProjectDirectory)\..\include;$(MSBuildProjectDirectory);$(IncludePath)</IncludePath>
+    <LibraryPath>D:\PGATR3\lib;$(MSBuildProjectDirectory)\..\lib\Release\x64;$(MSBuildProjectDirectory)\..\lib\x64;$(LibraryPath)</LibraryPath>
+    <SourcePath>$(MSBuildProjectDirectory)\..\include;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <ExecutablePath>$(MSBuildStartupDirectory)\bin;$(MSBuildStartupDirectory)\bin\Release\Win32;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(MSBuildStartupDirectory)\include;$(MSBuildProjectDirectory);$(IncludePath)</IncludePath>
-    <LibraryPath>$(MSBuildStartupDirectory)\lib\Release\Win32;$(MSBuildStartupDirectory)\lib;$(LibraryPath)</LibraryPath>
-    <SourcePath>$(MSBuildStartupDirectory)\include;$(SourcePath)</SourcePath>
+    <ExecutablePath>$(MSBuildProjectDirectory)\..\bin;$(MSBuildProjectDirectory)\..\bin\Release\Win32;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(MSBuildProjectDirectory)\..\include;$(MSBuildProjectDirectory);$(IncludePath)</IncludePath>
+    <LibraryPath>$(MSBuildProjectDirectory)\..\lib\Release\Win32;$(MSBuildProjectDirectory)\..\lib;$(LibraryPath)</LibraryPath>
+    <SourcePath>$(MSBuildProjectDirectory)\..\include;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <ExecutablePath>$(MSBuildStartupDirectory)\bin\Release\x64;$(MSBuildStartupDirectory)\bin\x64;$(ExecutablePath)</ExecutablePath>
-    <IncludePath>$(MSBuildStartupDirectory)\include;$(MSBuildProjectDirectory);$(IncludePath)</IncludePath>
-    <LibraryPath>$(MSBuildStartupDirectory)\lib\Release\x64;$(MSBuildStartupDirectory)\lib\x64;$(LibraryPath)</LibraryPath>
-    <SourcePath>$(MSBuildStartupDirectory)\include;$(SourcePath)</SourcePath>
+    <ExecutablePath>$(MSBuildProjectDirectory)\..\bin\Release\x64;$(MSBuildProjectDirectory)\..\bin\x64;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(MSBuildProjectDirectory)\..\include;$(MSBuildProjectDirectory);$(IncludePath)</IncludePath>
+    <LibraryPath>$(MSBuildProjectDirectory)\..\lib\Release\x64;$(MSBuildProjectDirectory)\..\lib\x64;$(LibraryPath)</LibraryPath>
+    <SourcePath>$(MSBuildProjectDirectory)\..\include;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -127,7 +127,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>FreeImage.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FreeImage.lib;glew32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
