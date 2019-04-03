@@ -261,45 +261,16 @@ void InitSSBO()
   glGenBuffers(1, &particleCompute.positionSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.positionSSBO);
   glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES*sizeof(pos), NULL, GL_DYNAMIC_DRAW);
-  /*pos* points = (pos*) glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(pos), bufMask);
-  for(int i = 0 ; i<NUM_PARTICLES; i++)
-  {
-    points[i].x = ranf(XMIN, XMAX);
-    points[i].y = ranf(YMIN, YMAX);
-    points[i].z = ranf(ZMIN, ZMAX);
-    points[i].w = 1;
-  }
-  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);*/
 
   glGenBuffers(1, &particleCompute.velocitySSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.velocitySSBO);
   glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(vel), NULL, GL_DYNAMIC_DRAW);
- /* vel* vels = (vel*) glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(vel), bufMask);
-  for (int i = 0; i < NUM_PARTICLES; i++)
-  {
-    vels[i].vx = ranf(XMIN, XMAX);
-    vels[i].vy = ranf(XMIN, XMAX);
-    vels[i].vz = ranf(XMIN, XMAX);
-    vels[i].vw = 0;
-  }
-  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);*/
 
   glGenBuffers(1, &particleCompute.colorSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.colorSSBO);
   glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(color), NULL, GL_DYNAMIC_DRAW);
-  /*color* colors = (color*) glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(color), bufMask);
-  for (int i = 0; i < NUM_PARTICLES; i++)
-  {
-    colors[i].r = ranf(.3f, 1.);
-    colors[i].g = ranf(.3f, 1.);
-    colors[i].b = ranf(.3f, 1.);
-    colors[i].a = 1.;
-  }
-  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);*/
-  //glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
   ResetSimulation();
-
 }
 
 void ResetSimulation()
