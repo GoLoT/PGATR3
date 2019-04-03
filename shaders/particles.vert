@@ -15,5 +15,4 @@ void main()
 	gl_Position = /*proj*/view*position;
 	vColor = color;
 	vVelocity = velocity;
-	vColor = gl_Position;
 }

@@ -43,6 +43,7 @@ void idleFunc();
 void UpdateCamera();
 void mouseMotionFunc(int x, int y);
 void mouseFunc(int button, int state, int x, int y);
+void ResetSimulation();
 
 //Camera settings
 
@@ -78,9 +79,10 @@ typedef struct color
 struct ParticleShading
 {
   GLuint inPosition, inVelocity, inColor;
-  GLuint uProj, uView;
+  GLuint uProj, uView, uParticleRadius;
   GLuint program;
   GLuint vao;
+  float particleRadius = 0.3f;
 } particleShading;
 
 struct ParticleCompute
@@ -89,6 +91,7 @@ struct ParticleCompute
   GLuint inPosition, inVelocity, inColor;
   GLuint program;
   bool paused = true;
+  bool reset = false;
 } particleCompute;
 
 inline float ranf(const float min, const float max)
@@ -124,7 +127,7 @@ void Initialize(int argc, char* argv[])
   glFrontFace(GL_CW);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glEnable(GL_CULL_FACE);
-  cameraSettings.proj = glm::perspective(glm::radians(60.0f), 1.0f, 0.1f, 2000.0f);
+  ResizeFunction(CurrentWidth, CurrentHeight);
   cameraSettings.view = glm::mat4(1.0f);
   cameraSettings.view[3].z = -60;
 }
@@ -245,6 +248,7 @@ void InitRenderingShader()
 
   particleShading.uView = glGetUniformLocation(particleShading.program, "view");
   particleShading.uProj = glGetUniformLocation(particleShading.program, "proj");
+  particleShading.uParticleRadius = glGetUniformLocation(particleShading.program, "particleRadius");
 
   glGenVertexArrays(1, &particleShading.vao);
 }
@@ -257,8 +261,53 @@ void InitSSBO()
   glGenBuffers(1, &particleCompute.positionSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.positionSSBO);
   glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES*sizeof(pos), NULL, GL_DYNAMIC_DRAW);
-  pos* points = (pos*) glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(pos), bufMask);
+  /*pos* points = (pos*) glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(pos), bufMask);
   for(int i = 0 ; i<NUM_PARTICLES; i++)
+  {
+    points[i].x = ranf(XMIN, XMAX);
+    points[i].y = ranf(YMIN, YMAX);
+    points[i].z = ranf(ZMIN, ZMAX);
+    points[i].w = 1;
+  }
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);*/
+
+  glGenBuffers(1, &particleCompute.velocitySSBO);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.velocitySSBO);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(vel), NULL, GL_DYNAMIC_DRAW);
+ /* vel* vels = (vel*) glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(vel), bufMask);
+  for (int i = 0; i < NUM_PARTICLES; i++)
+  {
+    vels[i].vx = ranf(XMIN, XMAX);
+    vels[i].vy = ranf(XMIN, XMAX);
+    vels[i].vz = ranf(XMIN, XMAX);
+    vels[i].vw = 0;
+  }
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);*/
+
+  glGenBuffers(1, &particleCompute.colorSSBO);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.colorSSBO);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(color), NULL, GL_DYNAMIC_DRAW);
+  /*color* colors = (color*) glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(color), bufMask);
+  for (int i = 0; i < NUM_PARTICLES; i++)
+  {
+    colors[i].r = ranf(.3f, 1.);
+    colors[i].g = ranf(.3f, 1.);
+    colors[i].b = ranf(.3f, 1.);
+    colors[i].a = 1.;
+  }
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);*/
+  //glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+  ResetSimulation();
+
+}
+
+void ResetSimulation()
+{
+  GLint bufMask = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT;
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.positionSSBO);
+  pos* points = (pos*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(pos), bufMask);
+  for (int i = 0; i < NUM_PARTICLES; i++)
   {
     points[i].x = ranf(XMIN, XMAX);
     points[i].y = ranf(YMIN, YMAX);
@@ -267,10 +316,8 @@ void InitSSBO()
   }
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-  glGenBuffers(1, &particleCompute.velocitySSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.velocitySSBO);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(vel), NULL, GL_DYNAMIC_DRAW);
-  vel* vels = (vel*) glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(vel), bufMask);
+  vel* vels = (vel*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(vel), bufMask);
   for (int i = 0; i < NUM_PARTICLES; i++)
   {
     vels[i].vx = ranf(XMIN, XMAX);
@@ -280,10 +327,8 @@ void InitSSBO()
   }
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-  glGenBuffers(1, &particleCompute.colorSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.colorSSBO);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(color), NULL, GL_DYNAMIC_DRAW);
-  color* colors = (color*) glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(color), bufMask);
+  color* colors = (color*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(color), bufMask);
   for (int i = 0; i < NUM_PARTICLES; i++)
   {
     colors[i].r = ranf(.3f, 1.);
@@ -293,14 +338,15 @@ void InitSSBO()
   }
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
 }
+
 
 void ResizeFunction(int Width, int Height)
 {
   CurrentWidth = Width;
   CurrentHeight = Height;
   glViewport(0, 0, CurrentWidth, CurrentHeight);
+  cameraSettings.proj = glm::perspective(glm::radians(60.0f), (float)CurrentWidth/(float)CurrentHeight, 0.1f, 2000.0f);
 }
 
 void RenderFunction(void)
@@ -308,6 +354,11 @@ void RenderFunction(void)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   UpdateCamera();
+
+  if (particleCompute.reset) {
+    particleCompute.reset = false;
+    ResetSimulation();
+  }
 
   if (!particleCompute.paused) {
 	  glUseProgram(particleCompute.program);
@@ -322,10 +373,15 @@ void RenderFunction(void)
   }
 
   glUseProgram(particleShading.program);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
   if (particleShading.uView != -1)
     glUniformMatrix4fv(particleShading.uView, 1, GL_FALSE, &(cameraSettings.view[0][0]));
   if (particleShading.uProj != -1)
     glUniformMatrix4fv(particleShading.uProj, 1, GL_FALSE, &(cameraSettings.proj[0][0]));
+  if (particleShading.uParticleRadius != -1)
+    glUniform1f(particleShading.uParticleRadius, particleShading.particleRadius);
   
   glBindVertexArray(particleShading.vao);
 
@@ -341,6 +397,8 @@ void RenderFunction(void)
 
   glDrawArrays(GL_POINTS, 0, NUM_PARTICLES);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  glDisable(GL_BLEND);
 
   glutSwapBuffers();
 }
@@ -443,6 +501,18 @@ void keyboardFunc(unsigned char key, int x, int y)
   case 'P':
 	  particleCompute.paused = !particleCompute.paused;
 	  break;
+  case 'r':
+  case 'R':
+    particleCompute.reset = true;
+    break;
+  case '+':
+    particleShading.particleRadius += 0.05f;
+    if (particleShading.particleRadius > 2.0f) particleShading.particleRadius = 2.0f;
+    break;
+  case '-':
+    particleShading.particleRadius -= 0.05f;
+    if (particleShading.particleRadius < 0.05f) particleShading.particleRadius = 0.05f;
+    break;
   default:
     std::cout << "Se ha pulsado la tecla " << key << std::endl << std::endl;
   }
