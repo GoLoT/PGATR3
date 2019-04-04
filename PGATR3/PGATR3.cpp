@@ -291,9 +291,9 @@ void ResetSimulation()
   vel* vels = (vel*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(vel), bufMask);
   for (int i = 0; i < NUM_PARTICLES; i++)
   {
-    vels[i].vx = ranf(XMIN, XMAX);
-    vels[i].vy = ranf(XMIN, XMAX);
-    vels[i].vz = ranf(XMIN, XMAX);
+    vels[i].vx = ranf(VXMIN, VXMAX);
+    vels[i].vy = ranf(VYMIN, VYMAX);
+    vels[i].vz = ranf(VZMIN, VZMAX);
     vels[i].vw = 0;
   }
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
