@@ -216,7 +216,7 @@ void InitRenderingShader()
 {
   auto vshader = loadShader("../shaders/particles.vert", GL_VERTEX_SHADER);
   auto fshader = loadShader("../shaders/particles.frag", GL_FRAGMENT_SHADER);
-  auto gshader = loadShader("../shaders/particles.geo", GL_GEOMETRY_SHADER);
+  auto gshader = loadShader("../shaders/particles.geom", GL_GEOMETRY_SHADER);
   particleShading.program = glCreateProgram();
   glAttachShader(particleShading.program, vshader);
   glAttachShader(particleShading.program, fshader);
