@@ -81,7 +81,7 @@
     <LinkIncremental>true</LinkIncremental>
     <ExecutablePath>$(MSBuildProjectDirectory)\..\bin\Release\x64;$(MSBuildProjectDirectory)\..\bin\x64;$(ExecutablePath)</ExecutablePath>
     <IncludePath>$(MSBuildProjectDirectory)\..\include;$(MSBuildProjectDirectory);$(IncludePath)</IncludePath>
-    <LibraryPath>D:\PGATR3\lib;$(MSBuildProjectDirectory)\..\lib\Release\x64;$(MSBuildProjectDirectory)\..\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(MSBuildProjectDirectory)\..\lib\Release\x64;$(MSBuildProjectDirectory)\..\lib\x64;$(LibraryPath)</LibraryPath>
     <SourcePath>$(MSBuildProjectDirectory)\..\include;$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -190,6 +190,8 @@
     <None Include="..\shaders\particles.frag" />
     <None Include="..\shaders\particles.geom" />
     <None Include="..\shaders\particles.vert" />
+    <None Include="..\shaders\particleSort.comp" />
+    <None Include="..\shaders\preSort.comp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

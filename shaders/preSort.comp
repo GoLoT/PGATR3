@@ -1,0 +1,26 @@
+#version 430 compatibility
+#extension GL_ARB_compute_shader : enable
+#extension GL_ARB_shader_storage_buffer_object : enable
+
+layout( std140, binding=4 ) buffer Pos {
+	vec4 Positions[];
+};
+
+layout( packed, binding=7 ) buffer Dist {
+	double Distances[];
+};
+
+layout( shared, binding=8 ) buffer Idx {
+	uint Indices[];
+};
+
+layout( local_size_x = 128,  local_size_y = 1, local_size_z = 1 ) in;
+
+uniform vec3 camPos;
+
+void main() {
+
+	uint gid = gl_GlobalInvocationID.x;
+	Indices[gid] = gid;
+	Distances[gid] = 5.0;//distance(Positions[gid].xyz, camPos);
+}

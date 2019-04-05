@@ -49,5 +49,11 @@
     <None Include="..\shaders\particles.geom">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="..\shaders\particleSort.comp">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="..\shaders\preSort.comp">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

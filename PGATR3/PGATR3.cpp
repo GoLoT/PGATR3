@@ -44,6 +44,8 @@ void UpdateCamera();
 void mouseMotionFunc(int x, int y);
 void mouseFunc(int button, int state, int x, int y);
 void ResetSimulation();
+void SortParticles();
+void InitSortingShader();
 
 //Camera settings
 
@@ -78,8 +80,8 @@ typedef struct color
 
 struct ParticleShading
 {
-  GLuint inPosition, inVelocity, inColor;
-  GLuint uProj, uView, uParticleRadius;
+  int inPosition, inVelocity, inColor;
+  int uProj, uView, uParticleRadius;
   GLuint program;
   GLuint vao;
   float particleRadius = 0.3f;
@@ -87,16 +89,26 @@ struct ParticleShading
 
 struct ParticleCompute
 {
-  GLuint positionSSBO = 4, velocitySSBO = 5, colorSSBO = 6;
-  GLuint inPosition, inVelocity, inColor;
+  GLuint positionSSBO, velocitySSBO, colorSSBO;
+  int inPosition = 4, inVelocity = 5, inColor = 6;
   GLuint program;
   bool paused = true;
   bool reset = false;
 } particleCompute;
 
+struct ParticleSort
+{
+  GLuint distanceSSBO, indexSSBO;
+  int inPosition = 4, inDistances = 7, inIndices = 8;
+  int uCamPos;
+  GLuint preProgram;
+  GLuint program;
+  bool enabled = true;
+} particleSort;
+
 inline float ranf(const float min, const float max)
 {
-  return (max - min)*(double)rand() / (double)(RAND_MAX) + min;
+  return (float) ( (max - min)*(double)rand() / (double)(RAND_MAX) + min );
 }
 
 int main(int argc, char* argv[])
@@ -106,6 +118,7 @@ int main(int argc, char* argv[])
   InitComputeShader();
   InitSSBO();
   InitRenderingShader();
+  InitSortingShader();
 
   glutMainLoop();
 
@@ -206,9 +219,6 @@ void InitComputeShader()
   /*particleCompute.inPosition = glGetProgramResourceIndex(particleCompute.program, GL_SHADER_STORAGE_BLOCK, "Pos");
   particleCompute.inVelocity = glGetProgramResourceIndex(particleCompute.program, GL_SHADER_STORAGE_BLOCK, "Vel");
   particleCompute.inColor = glGetProgramResourceIndex(particleCompute.program, GL_SHADER_STORAGE_BLOCK, "Col");*/
-  particleCompute.inPosition = 4;
-  particleCompute.inVelocity = 5;
-  particleCompute.inColor = 6;
 
 }
 
@@ -253,6 +263,69 @@ void InitRenderingShader()
   glGenVertexArrays(1, &particleShading.vao);
 }
 
+void InitSortingShader()
+{
+  auto cshader = loadShader("../shaders/preSort.comp", GL_COMPUTE_SHADER);
+  particleSort.preProgram = glCreateProgram();
+  glAttachShader(particleSort.preProgram, cshader);
+
+  glLinkProgram(particleSort.preProgram);
+
+  int linked;
+  glGetProgramiv(particleSort.preProgram, GL_LINK_STATUS, &linked);
+  if (!linked)
+  {
+    //Calculamos una cadena de error
+    GLint logLen;
+    glGetProgramiv(particleSort.preProgram, GL_INFO_LOG_LENGTH, &logLen);
+
+    char *logString = new char[logLen];
+    glGetProgramInfoLog(particleSort.preProgram, logLen, NULL, logString);
+    std::cout << "Error: " << logString << std::endl;
+    delete logString;
+
+    glDeleteProgram(particleSort.preProgram);
+    particleSort.preProgram = 0;
+    exit(-1);
+  }
+
+  particleSort.uCamPos = glGetUniformLocation(particleSort.preProgram, "camPos");
+
+  cshader = loadShader("../shaders/particleSort.comp", GL_COMPUTE_SHADER);
+  particleSort.program = glCreateProgram();
+  glAttachShader(particleSort.program, cshader);
+
+  glLinkProgram(particleSort.program);
+
+  glGetProgramiv(particleSort.program, GL_LINK_STATUS, &linked);
+  if (!linked)
+  {
+    //Calculamos una cadena de error
+    GLint logLen;
+    glGetProgramiv(particleSort.program, GL_INFO_LOG_LENGTH, &logLen);
+
+    char *logString = new char[logLen];
+    glGetProgramInfoLog(particleSort.program, logLen, NULL, logString);
+    std::cout << "Error: " << logString << std::endl;
+    delete logString;
+
+    glDeleteProgram(particleSort.program);
+    particleSort.program = 0;
+    exit(-1);
+  }
+
+  glGenBuffers(1, &particleSort.distanceSSBO);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(float), NULL, GL_DYNAMIC_DRAW);
+
+  glGenBuffers(1, &particleSort.indexSSBO);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(unsigned int), NULL, GL_DYNAMIC_DRAW);
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+}
+
 
 void InitSSBO()
 {
@@ -260,7 +333,7 @@ void InitSSBO()
 
   glGenBuffers(1, &particleCompute.positionSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.positionSSBO);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES*sizeof(pos), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(pos), NULL, GL_DYNAMIC_DRAW);
 
   glGenBuffers(1, &particleCompute.velocitySSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.velocitySSBO);
@@ -343,6 +416,10 @@ void RenderFunction(void)
 
   }
 
+  if (particleSort.enabled) {
+    SortParticles();
+  }
+
   glUseProgram(particleShading.program);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -356,22 +433,55 @@ void RenderFunction(void)
   
   glBindVertexArray(particleShading.vao);
 
-  glEnableVertexAttribArray(particleShading.inPosition);
-  glBindBuffer(GL_ARRAY_BUFFER, particleCompute.positionSSBO);
-  glVertexAttribPointer(particleShading.inPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
-  glBindBuffer(GL_ARRAY_BUFFER, particleCompute.velocitySSBO);
-  glEnableVertexAttribArray(particleShading.inVelocity);
-  glVertexAttribPointer(particleShading.inVelocity, 4, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(particleShading.inColor);
-  glBindBuffer(GL_ARRAY_BUFFER, particleCompute.colorSSBO);
-  glVertexAttribPointer(particleShading.inColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+  if (particleShading.inPosition != -1) {
+    glEnableVertexAttribArray(particleShading.inPosition);
+    glBindBuffer(GL_ARRAY_BUFFER, particleCompute.positionSSBO);
+    glVertexAttribPointer(particleShading.inPosition, 4, GL_FLOAT, GL_FALSE, 0, 0);
+  }
+  if (particleShading.inVelocity != -1) {
+    glEnableVertexAttribArray(particleShading.inVelocity);
+    glBindBuffer(GL_ARRAY_BUFFER, particleCompute.velocitySSBO);
+    glVertexAttribPointer(particleShading.inVelocity, 4, GL_FLOAT, GL_FALSE, 0, 0);
+  }
+  if (particleShading.inColor != -1) {
+    glEnableVertexAttribArray(particleShading.inColor);
+    glBindBuffer(GL_ARRAY_BUFFER, particleCompute.colorSSBO);
+    glVertexAttribPointer(particleShading.inColor, 4, GL_FLOAT, GL_FALSE, 0, 0);
+  }
 
-  glDrawArrays(GL_POINTS, 0, NUM_PARTICLES);
+  if(particleSort.enabled)
+  {
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, particleSort.indexSSBO);
+    glDrawElements(GL_POINTS, NUM_PARTICLES, GL_UNSIGNED_INT, 0);
+  } else 
+    glDrawArrays(GL_POINTS, 0, NUM_PARTICLES);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   glDisable(GL_BLEND);
 
   glutSwapBuffers();
+}
+
+void SortParticles()
+{
+  glUseProgram(particleSort.preProgram);
+
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inPosition, particleCompute.positionSSBO);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inDistances, particleSort.distanceSSBO);
+  //glBindBufferRange(GL_SHADER_STORAGE_BUFFER, particleSort.inDistances, particleSort.distanceSSBO, 0, sizeof(float));
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inIndices, particleSort.indexSSBO);
+
+  glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
+  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+  /*glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
+  float* distances = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(float), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+  for (int i = 0; i < 5; i++)
+  {
+    std::cout << i << " " << distances[i] << std::endl;
+  }
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);*/
+
 }
 
 //Shader loading code from G3D exercises
@@ -475,6 +585,10 @@ void keyboardFunc(unsigned char key, int x, int y)
   case 'r':
   case 'R':
     particleCompute.reset = true;
+    break;
+  case 't':
+  case 'T':
+    particleSort.enabled = !particleSort.enabled;
     break;
   case '+':
     particleShading.particleRadius += 0.05f;
