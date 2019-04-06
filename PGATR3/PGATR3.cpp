@@ -776,12 +776,14 @@ bool TestOrder()
     GLfloat act = distancesH[indicesH[i]];
     if (act > last)
     {
-      glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
       std::cout << "Distancia incorrecta en " << i << " -> " << indicesH[i] << " Distancia: " << act << " > " << last << std::endl;
         return false;
     }
     last = act;
   }
+
+  free(distancesH);
+  free(indicesH);
 	return true;
 
 }
