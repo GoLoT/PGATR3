@@ -22,5 +22,5 @@ void main() {
 
 	uint gid = gl_GlobalInvocationID.x;
 	Indices[gid] = gid;
-	Distances[gid] = 5.0;//distance(Positions[gid].xyz, camPos);
+	Distances[gid] = distance(Positions[gid].xyz, camPos);
 }

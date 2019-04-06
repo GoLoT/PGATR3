@@ -46,6 +46,10 @@ void mouseFunc(int button, int state, int x, int y);
 void ResetSimulation();
 void SortParticles();
 void InitSortingShader();
+void InitProfiler();
+void ProfilerNewFrame();
+const long long CurrentTimeMicroseconds();
+void PrintProfilerStats();
 
 //Camera settings
 
@@ -106,6 +110,13 @@ struct ParticleSort
   bool enabled = true;
 } particleSort;
 
+struct FrameProfiling
+{
+  unsigned int frametimes[50];
+  unsigned int offset;
+  unsigned long int lastTime;
+} frameProfiling;
+
 inline float ranf(const float min, const float max)
 {
   return (float) ( (max - min)*(double)rand() / (double)(RAND_MAX) + min );
@@ -119,6 +130,7 @@ int main(int argc, char* argv[])
   InitSSBO();
   InitRenderingShader();
   InitSortingShader();
+  InitProfiler();
 
   glutMainLoop();
 
@@ -316,11 +328,11 @@ void InitSortingShader()
 
   glGenBuffers(1, &particleSort.distanceSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(float), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
 
   glGenBuffers(1, &particleSort.indexSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(unsigned int), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(GLuint), NULL, GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
@@ -460,6 +472,8 @@ void RenderFunction(void)
   glDisable(GL_BLEND);
 
   glutSwapBuffers();
+
+  ProfilerNewFrame();
 }
 
 void SortParticles()
@@ -468,29 +482,28 @@ void SortParticles()
 
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inPosition, particleCompute.positionSSBO);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inDistances, particleSort.distanceSSBO);
-  //glBindBufferRange(GL_SHADER_STORAGE_BUFFER, particleSort.inDistances, particleSort.distanceSSBO, 0, sizeof(float));
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inIndices, particleSort.indexSSBO);
 
   glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-	/*
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
+	
+  /*glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
   GLfloat* distances = (GLfloat*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
   for (int i = 0; i < 5; i++)
   {
     std::cout << i << " " << distances[i] << std::endl;
   }
-  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER); */
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER); 
 
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
-  GLuint* distances = (GLuint*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
+  GLuint* indices = (GLuint*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
   for (int i = 0; i < 5; i++)
   {
-	  std::cout << i << " " << distances[i] << std::endl;
+	  std::cout << i << " " << indices[i] << std::endl;
   }
-  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER); 
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER); */
 
 
 }
@@ -601,6 +614,10 @@ void keyboardFunc(unsigned char key, int x, int y)
   case 'T':
     particleSort.enabled = !particleSort.enabled;
     break;
+  case 'l':
+  case 'L':
+    PrintProfilerStats();
+    break;
   case '+':
     particleShading.particleRadius += 0.05f;
     if (particleShading.particleRadius > 2.0f) particleShading.particleRadius = 2.0f;
@@ -657,4 +674,39 @@ void mouseMotionFunc(int x, int y)
   cameraSettings.pitch = glm::clamp(cameraSettings.pitch, -1.5708f, 1.5708f);
 
   cameraSettings.lastX = x; cameraSettings.lastY = y;
+}
+
+void InitProfiler()
+{
+  for (int i = 0; i < 50; i++)
+    frameProfiling.frametimes[i] = 0;
+  frameProfiling.lastTime = CurrentTimeMicroseconds();
+}
+
+void ProfilerNewFrame()
+{
+  unsigned long int oldTime = frameProfiling.lastTime;
+  frameProfiling.lastTime = CurrentTimeMicroseconds();
+  frameProfiling.frametimes[frameProfiling.offset++] = frameProfiling.lastTime - oldTime;
+  if (frameProfiling.offset >= 50)
+    frameProfiling.offset = 0;
+}
+
+void PrintProfilerStats()
+{
+  int i;
+  unsigned long int sum = 0;
+  for (i = 0; i < 50; i++)
+  {
+    sum += frameProfiling.frametimes[i];
+  }
+  float mean = ((float)sum / (float)i) / 1000.0f;
+  std::cout << "Media de frametime: " << mean << std::endl << "Media de framerate: " << 1000.0f / mean << std::endl;
+}
+
+inline const long long CurrentTimeMicroseconds()
+{
+  return std::chrono::duration_cast<std::chrono::microseconds>(
+    std::chrono::system_clock::now().time_since_epoch()
+    ).count();
 }
