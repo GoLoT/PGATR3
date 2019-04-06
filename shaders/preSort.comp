@@ -7,7 +7,7 @@ layout( std140, binding=4 ) buffer Pos {
 };
 
 layout( packed, binding=7 ) buffer Dist {
-	double Distances[];
+	float Distances[];
 };
 
 layout( shared, binding=8 ) buffer Idx {

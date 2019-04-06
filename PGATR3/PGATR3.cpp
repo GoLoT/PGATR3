@@ -474,13 +474,24 @@ void SortParticles()
   glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-  /*glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
-  float* distances = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(float), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+	/*
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
+  GLfloat* distances = (GLfloat*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
   for (int i = 0; i < 5; i++)
   {
     std::cout << i << " " << distances[i] << std::endl;
   }
-  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);*/
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER); */
+
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
+  GLuint* distances = (GLuint*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
+  for (int i = 0; i < 5; i++)
+  {
+	  std::cout << i << " " << distances[i] << std::endl;
+  }
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER); 
+
 
 }
 
