@@ -17,7 +17,6 @@ uniform int pass;
 
 void main() {
 	uint  gid = gl_GlobalInvocationID.x;
-	distances[indices[gid]] = distances[indices[gid]] + 1;
 
 	uint pairDistance = 1 << (stage - pass);
 	uint blockWidth = 2 * pairDistance;
