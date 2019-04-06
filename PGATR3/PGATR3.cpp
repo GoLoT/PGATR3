@@ -769,19 +769,19 @@ bool TestOrder()
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
 	GLuint* indices = (GLuint*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
 	memcpy(indicesH, indices, NUM_PARTICLES * sizeof(GLuint));
-
-	GLfloat last = distancesH[0];
-	for (int i = 1; i < NUM_PARTICLES; i++)
-	{
-		GLfloat act = distancesH[i];
-		if (act < last)
-		{
-			glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-			return false;
-		}
-		last = act;
-	}
-	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+  GLfloat last = distancesH[indicesH[0]];
+  for (int i = 1; i < NUM_PARTICLES; i++)
+  {
+    GLfloat act = distancesH[indicesH[i]];
+    if (act > last)
+    {
+      glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+      std::cout << "Distancia incorrecta en " << i << " -> " << indicesH[i] << " Distancia: " << act << " > " << last << std::endl;
+        return false;
+    }
+    last = act;
+  }
 	return true;
 
 }
