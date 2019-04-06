@@ -131,6 +131,13 @@ int main(int argc, char* argv[])
   InitRenderingShader();
   InitSortingShader();
   InitProfiler();
+  int maxWorkItems;
+  glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &maxWorkItems);
+	if (maxWorkItems < WORK_GROUP_SIZE)
+	{
+		std::cerr << "Error max number of work items are " << maxWorkItems << " and set " << WORK_GROUP_SIZE;
+		exit(1);
+	}
 
   glutMainLoop();
 
