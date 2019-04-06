@@ -502,7 +502,6 @@ void SortParticles()
 
   glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
 	
   /*glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
   GLfloat* distances = (GLfloat*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
@@ -524,23 +523,26 @@ void SortParticles()
   /*size_t data_size = NUM_PARTICLES / 2;
   size_t local_size = WORK_GROUP_SIZE;
   size_t num_workgroups = data_size / local_size;*/
-
+  
   glUseProgram(particleSort.program);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inDistances, particleSort.distanceSSBO);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inIndices, particleSort.indexSSBO);
 
-  int stage = 0, pass = 0, nStages = 0, temp;
+  GLuint stage = 0, pass = 0, nStages = 0, temp;
   for (temp = NUM_PARTICLES; temp > 1; temp >>= 1)
     nStages++;
-  for(stage = 0; stage < nStages; stage++)
+  for(stage = 0; stage < nStages; ++stage)
   {
-    glUniform1i(particleSort.uStage, stage);
-    for (pass = 0; pass < stage + 1; pass++) {
-      glUniform1i(particleSort.uPass, pass);
+    glUniform1ui(particleSort.uStage, stage);
+    for (pass = 0; pass < stage + 1; ++pass) {
+      glUniform1ui(particleSort.uPass, pass);
       glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE / 2, 1, 1);
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
-  }
+  } 
+
+  std::cout << TestOrder() << std::endl;
+
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
   GLuint* indices2 = (GLuint*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
@@ -757,28 +759,29 @@ inline const long long CurrentTimeMicroseconds()
 
 bool TestOrder()
 {
-	std::vector<GLfloat> distancesH;
-	distancesH.reserve(NUM_PARTICLES);
+	GLfloat* distancesH = (GLfloat*) malloc(NUM_PARTICLES * sizeof(GLfloat));
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
-  GLfloat* distances = (GLfloat*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_WRITE);
-  for (int i = 0; i < NUM_PARTICLES; i++)
-  {
-	  distancesH.push_back(distances[i]);
-  }
-  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+	GLfloat* distances = (GLfloat*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
+	memcpy(distancesH, distances, NUM_PARTICLES * sizeof(GLfloat));
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-
+	GLuint* indicesH = (GLuint*)malloc(NUM_PARTICLES * sizeof(GLuint));
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
-	GLuint* indices = (GLuint*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_WRITE);
-	float last = distancesH[indices[0]];
+	GLuint* indices = (GLuint*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
+	memcpy(indicesH, indices, NUM_PARTICLES * sizeof(GLuint));
+
+	GLfloat last = distancesH[0];
 	for (int i = 1; i < NUM_PARTICLES; i++)
 	{
-		if(distancesH[indices[i]] < last )
+		GLfloat act = distancesH[i];
+		if (act < last)
 		{
+			glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 			return false;
 		}
-		last = distancesH[indices[i]];
+		last = act;
 	}
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+	return true;
 	
 }
