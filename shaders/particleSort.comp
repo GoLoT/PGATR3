@@ -12,8 +12,32 @@ layout( shared, binding=8 ) buffer Idx {
 
 layout( local_size_x = 128,  local_size_y = 1, local_size_z = 1 ) in;
 
-void main() {
+uniform int stage;
+uniform int pass;
 
+void main() {
 	uint  gid = gl_GlobalInvocationID.x;
 	distances[indices[gid]] = distances[indices[gid]] + 1;
+
+	uint pairDistance = 1 << (stage - pass);
+	uint blockWidth = 2 * pairDistance;
+	uint temp;
+	bool compareResult;
+	uint leftId = (gid & (pairDistance - 1)) + (gid >> (stage - pass) ) * blockWidth;
+	uint rightId = leftId + pairDistance;
+
+	float leftElement, rightElement;
+	uint greater, lesser;
+	leftElement = distances[indices[leftId]];
+	rightElement = distances[indices[rightId]];
+	uint sameDirectionBlockWidth = gid >> stage;
+	uint sameDirection = sameDirectionBlockWidth & 0x1;
+	temp = sameDirection!=0?rightId:temp;
+	rightId = sameDirection!=0?leftId:rightId;
+	leftId = sameDirection!=0?temp:leftId;
+	compareResult = (leftElement < rightElement) ;
+	greater = compareResult?indices[rightId]:indices[leftId];
+	lesser = compareResult?indices[leftId]:indices[rightId];
+	indices[leftId] = greater;
+	indices[rightId] = lesser;
 }

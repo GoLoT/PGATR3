@@ -104,7 +104,7 @@ struct ParticleSort
 {
   GLuint distanceSSBO, indexSSBO;
   int inPosition = 4, inDistances = 7, inIndices = 8;
-  int uCamPos;
+  int uCamPos, uStage, uPass;
   GLuint preProgram;
   GLuint program;
   bool enabled = true;
@@ -326,6 +326,9 @@ void InitSortingShader()
     exit(-1);
   }
 
+  particleSort.uStage = glGetUniformLocation(particleSort.program, "stage");
+  particleSort.uPass = glGetUniformLocation(particleSort.program, "pass");
+
   glGenBuffers(1, &particleSort.distanceSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
   glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
@@ -480,6 +483,9 @@ void SortParticles()
 {
   glUseProgram(particleSort.preProgram);
 
+  if (particleSort.uCamPos != -1)
+    glUniform3f(particleSort.uCamPos, cameraSettings.cameraPos[0], cameraSettings.cameraPos[1], cameraSettings.cameraPos[2]);
+
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inPosition, particleCompute.positionSSBO);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inDistances, particleSort.distanceSSBO);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inIndices, particleSort.indexSSBO);
@@ -503,8 +509,28 @@ void SortParticles()
   {
 	  std::cout << i << " " << indices[i] << std::endl;
   }
-  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER); */
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);*/
 
+  /*size_t data_size = NUM_PARTICLES / 2;
+  size_t local_size = WORK_GROUP_SIZE;
+  size_t num_workgroups = data_size / local_size;*/
+
+  glUseProgram(particleSort.program);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inDistances, particleSort.distanceSSBO);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inIndices, particleSort.indexSSBO);
+
+  int stage = 0, pass = 0, nStages = 0, temp;
+  for (temp = NUM_PARTICLES; temp > 1; temp >>= 1)
+    nStages++;
+  for(stage = 0; stage < nStages; stage++)
+  {
+    glUniform1i(particleSort.uStage, stage);
+    for (pass = 0; pass < stage + 1; pass++) {
+      glUniform1i(particleSort.uPass, pass);
+      glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE / 2, 1, 1);
+      glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    }
+  }
 
 }
 
@@ -680,13 +706,13 @@ void InitProfiler()
 {
   for (int i = 0; i < 50; i++)
     frameProfiling.frametimes[i] = 0;
-  frameProfiling.lastTime = CurrentTimeMicroseconds();
+  frameProfiling.lastTime = (unsigned long) CurrentTimeMicroseconds();
 }
 
 void ProfilerNewFrame()
 {
   unsigned long int oldTime = frameProfiling.lastTime;
-  frameProfiling.lastTime = CurrentTimeMicroseconds();
+  frameProfiling.lastTime = (unsigned long) CurrentTimeMicroseconds();
   frameProfiling.frametimes[frameProfiling.offset++] = frameProfiling.lastTime - oldTime;
   if (frameProfiling.offset >= 50)
     frameProfiling.offset = 0;
