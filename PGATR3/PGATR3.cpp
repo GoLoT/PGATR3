@@ -106,7 +106,7 @@ struct ParticleSort
 {
   GLuint distanceSSBO, indexSSBO;
   int inPosition = 4, inDistances = 7, inIndices = 8;
-  int uCamPos, uStage, uPass;
+  int uView, uStage, uPass;
   GLuint preProgram;
   GLuint program;
   bool enabled = true;
@@ -310,7 +310,7 @@ void InitSortingShader()
     exit(-1);
   }
 
-  particleSort.uCamPos = glGetUniformLocation(particleSort.preProgram, "camPos");
+  particleSort.uView = glGetUniformLocation(particleSort.preProgram, "view");
 
   cshader = loadShader("../shaders/particleSort.comp", GL_COMPUTE_SHADER);
   particleSort.program = glCreateProgram();
@@ -493,8 +493,11 @@ void SortParticles()
 {
   glUseProgram(particleSort.preProgram);
 
-  if (particleSort.uCamPos != -1)
-    glUniform3f(particleSort.uCamPos, cameraSettings.cameraPos[0], cameraSettings.cameraPos[1], cameraSettings.cameraPos[2]);
+  /*if (particleSort.uCamPos != -1)
+    glUniform3f(particleSort.uCamPos, cameraSettings.cameraPos[0], cameraSettings.cameraPos[1], cameraSettings.cameraPos[2]);*/
+
+  if (particleSort.uView != -1)
+    glUniformMatrix4fv(particleSort.uView, 1, GL_FALSE, &(cameraSettings.view[0][0]));
 
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inPosition, particleCompute.positionSSBO);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inDistances, particleSort.distanceSSBO);
@@ -531,17 +534,17 @@ void SortParticles()
   GLuint stage = 0, pass = 0, nStages = 0, temp;
   for (temp = NUM_PARTICLES; temp > 1; temp >>= 1)
     nStages++;
-  for(stage = 0; stage < nStages; ++stage)
+  for(stage = 0; stage < nStages; stage++)
   {
     glUniform1ui(particleSort.uStage, stage);
-    for (pass = 0; pass < stage + 1; ++pass) {
+    for (pass = 0; pass < stage + 1; pass++) {
       glUniform1ui(particleSort.uPass, pass);
       glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE / 2, 1, 1);
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
   } 
 
-  std::cout << TestOrder() << std::endl;
+  std::cout << "Test de ordenacion: " << (TestOrder()?"Pasado":"Fallado") << std::endl;
 
 
   /*glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
@@ -774,10 +777,12 @@ bool TestOrder()
   for (int i = 1; i < NUM_PARTICLES; i++)
   {
     GLfloat act = distancesH[indicesH[i]];
-    if (act > last)
+    if (act < last)
     {
-      std::cout << "Distancia incorrecta en " << i << " -> " << indicesH[i] << " Distancia: " << act << " > " << last << std::endl;
-        return false;
+      std::cout << "Distancia incorrecta en " << i << " -> " << indicesH[i] << " Distancia: " << act << " < " << last << std::endl;
+      free(distancesH);
+      free(indicesH);
+      return false;
     }
     last = act;
   }

@@ -31,12 +31,12 @@ void main() {
 	rightElement = distances[indices[rightId]];
 	uint sameDirectionBlockWidth = gid >> stage;
 	uint sameDirection = sameDirectionBlockWidth & 0x1;
-	temp = sameDirection!=0?rightId:temp;
-	rightId = sameDirection!=0?leftId:rightId;
-	leftId = sameDirection!=0?temp:leftId;
+	temp = sameDirection==1?rightId:temp;
+	rightId = sameDirection==1?leftId:rightId;
+	leftId = sameDirection==1?temp:leftId;
 	compareResult = (leftElement < rightElement) ;
 	greater = compareResult?indices[rightId]:indices[leftId];
 	lesser = compareResult?indices[leftId]:indices[rightId];
-	indices[leftId] = greater;
-	indices[rightId] = lesser;
+	indices[leftId] = lesser;
+	indices[rightId] = greater;
 }

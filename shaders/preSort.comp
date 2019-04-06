@@ -16,11 +16,12 @@ layout( shared, binding=8 ) buffer Idx {
 
 layout( local_size_x = 128,  local_size_y = 1, local_size_z = 1 ) in;
 
-uniform vec3 camPos;
+uniform mat4 view;
 
 void main() {
 
 	uint gid = gl_GlobalInvocationID.x;
 	Indices[gid] = gid;
-	Distances[gid] = distance(Positions[gid].xyz, camPos);
+	//Distances[gid] = distance(Positions[gid].xyz, camPos);
+	Distances[gid] = -(view * Positions[gid]).z;
 }
