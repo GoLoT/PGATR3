@@ -346,6 +346,13 @@ void InitSortingShader()
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
   glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(GLuint), NULL, GL_DYNAMIC_DRAW);
 
+  GLuint* indices = (GLuint*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(GLuint), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+  for (int i = 0; i < NUM_PARTICLES; i++)
+  {
+    indices[i] = i;
+  }
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
 }
@@ -353,8 +360,6 @@ void InitSortingShader()
 
 void InitSSBO()
 {
-  GLint bufMask = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT;
-
   glGenBuffers(1, &particleCompute.positionSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.positionSSBO);
   glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(pos), NULL, GL_DYNAMIC_DRAW);
@@ -442,7 +447,6 @@ void RenderFunction(void)
 
   if (particleSort.enabled) {
     SortParticles();
-	std::cout << TestOrder() << std::endl;
   }
 
   glUseProgram(particleShading.program);

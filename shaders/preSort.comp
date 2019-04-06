@@ -21,7 +21,7 @@ uniform mat4 view;
 void main() {
 
 	uint gid = gl_GlobalInvocationID.x;
-	Indices[gid] = gid;
+	//Indices[gid] = gid;
 	//Distances[gid] = distance(Positions[gid].xyz, camPos);
 	Distances[gid] = -(view * Positions[gid]).z;
 }
