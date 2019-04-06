@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
+#include <vector>
 
 #define NUM_PARTICLES     (1024*1024)
 #define WORK_GROUP_SIZE   128
@@ -50,6 +51,7 @@ void InitProfiler();
 void ProfilerNewFrame();
 const long long CurrentTimeMicroseconds();
 void PrintProfilerStats();
+bool TestOrder();
 
 //Camera settings
 
@@ -440,6 +442,7 @@ void RenderFunction(void)
 
   if (particleSort.enabled) {
     SortParticles();
+	std::cout << TestOrder() << std::endl;
   }
 
   glUseProgram(particleShading.program);
@@ -742,4 +745,32 @@ inline const long long CurrentTimeMicroseconds()
   return std::chrono::duration_cast<std::chrono::microseconds>(
     std::chrono::system_clock::now().time_since_epoch()
     ).count();
+}
+
+bool TestOrder()
+{
+	std::vector<GLfloat> distancesH;
+	distancesH.reserve(NUM_PARTICLES);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
+  GLfloat* distances = (GLfloat*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_WRITE);
+  for (int i = 0; i < NUM_PARTICLES; i++)
+  {
+	  distancesH.push_back(distances[i]);
+  }
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
+	GLuint* indices = (GLuint*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_WRITE);
+	float last = distancesH[indices[0]];
+	for (int i = 1; i < NUM_PARTICLES; i++)
+	{
+		if(distancesH[indices[i]] < last )
+		{
+			return false;
+		}
+		last = distancesH[indices[i]];
+	}
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+	
 }
