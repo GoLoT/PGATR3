@@ -30,7 +30,10 @@ Iván Velasco González}
 \end{titlepage}
 
 \section{Introducción}
-El objetivo de esta práctica consiste en la implementación de un modelo de partículas básico implementado en shaders de cómputo que se ejecutarán en GPU. Además se proponen tareas adicionales, de las que se ha optado por la implementación de la ordenación de partículas (también realizada en shaders de cómputo) para una correcta visualización de las partículas.
+El objetivo de esta práctica consiste en la implementación de un modelo de partículas básico implementado en shaders de cómputo que se ejecutarán en GPU. Además se proponen tareas adicionales, de las que se ha optado por la implementación de la ordenación de partículas (también realizada en shaders de cómputo) para una correcta visualización de las partículas.\\
+
+En caso de que la aplicación no se ejecute de forma correcta por falta de las \textit{dll} sera neceario modificar la variable de entorno de Visual Studio en Propiedades del proyecto \rightarrow Depuración y poner en entorno PATH=\$(ProjectDir)..\textbackslash bin;\%PATH\%; en caso de ejecutar una version de 32 bits y  PATH=\$(ProjectDir)..\textbackslash bin\textbackslash x64;
+\%PATH\%
 
 \section{Aplicación cliente}
 La aplicación se ha implementado en C++ partiendo de un proyecto vacío en el que se han añadido las librerías necesarias para el desarrollo. Se ha utilizado \textit{freeGLUT} para la inicialización del contexto, \textit{GLEW} para la inicialización de extensiones, \textit{GLM} para las funciones matemáticas y estructuras de datos algebraicas, y \textit{FreeImage} para la carga de texturas, aunque finalmente no se ha cargado ninguna textura en el proyecto.\\
