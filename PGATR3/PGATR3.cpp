@@ -106,7 +106,7 @@ struct ParticleSort
 {
   GLuint distanceSSBO, indexSSBO;
   int inPosition = 4, inDistances = 7, inIndices = 8;
-  int uView, uStage, uPass;
+  int uView, uJ, uK;
   GLuint preProgram;
   GLuint program;
   bool enabled = true;
@@ -335,8 +335,8 @@ void InitSortingShader()
     exit(-1);
   }
 
-  particleSort.uStage = glGetUniformLocation(particleSort.program, "stage");
-  particleSort.uPass = glGetUniformLocation(particleSort.program, "pass");
+  particleSort.uJ = glGetUniformLocation(particleSort.program, "j");
+  particleSort.uK = glGetUniformLocation(particleSort.program, "k");
 
   glGenBuffers(1, &particleSort.distanceSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
@@ -535,18 +535,19 @@ void SortParticles()
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inDistances, particleSort.distanceSSBO);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inIndices, particleSort.indexSSBO);
 
-  GLuint stage = 0, pass = 0, nStages = 0, temp;
-  for (temp = NUM_PARTICLES; temp > 1; temp >>= 1)
-    nStages++;
-  for(stage = 0; stage < nStages; stage++)
-  {
-    glUniform1ui(particleSort.uStage, stage);
-    for (pass = 0; pass < stage + 1; pass++) {
-      glUniform1ui(particleSort.uPass, pass);
-      glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE / 2, 1, 1);
-      glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-    }
-  } 
+	int j, k;
+  /* Major step */
+  for (k = 2; k <= NUM_PARTICLES; k <<= 1) {
+	      glUniform1ui(particleSort.uK, k);
+
+    /* Minor step */
+    for (j=k>>1; j>0; j=j>>1) {
+		      glUniform1ui(particleSort.uJ, j);
+
+      glDispatchCompute(NUM_PARTICLES/WORK_GROUP_SIZE,1,1);
+	  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	}
+}
 
   std::cout << "Test de ordenacion: " << (TestOrder()?"Pasado":"Fallado") << std::endl;
 
@@ -777,10 +778,10 @@ bool TestOrder()
 	GLuint* indices = (GLuint*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
 	memcpy(indicesH, indices, NUM_PARTICLES * sizeof(GLuint));
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-  GLfloat last = distancesH[indicesH[0]];
+  GLfloat last = distancesH[0];
   for (int i = 1; i < NUM_PARTICLES; i++)
   {
-    GLfloat act = distancesH[indicesH[i]];
+    GLfloat act = distancesH[i];
     if (act < last)
     {
       std::cout << "Distancia incorrecta en " << i << " -> " << indicesH[i] << " Distancia: " << act << " < " << last << std::endl;
