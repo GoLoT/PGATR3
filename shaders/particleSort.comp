@@ -16,26 +16,16 @@ uniform uint j;
 uniform uint k;
 
 void main() {
-	 uint i, ixj; /* Sorting partners: i and ixj */
+  uint i, ixj;
   i = gl_GlobalInvocationID.x;
   ixj = i^j;
 
-  /* The threads with the lowest ids sort the array. */
   if ((ixj)>i) {
-    if ((i&k)==0) {
-      /* Sort ascending */
-	  uint temp = indices[i];
-	  bool swap = distances[indices[i]]<distances[indices[ixj]];
-	  indices[i] = swap? indices[ixj] : indices[i];
-	  indices[ixj] = swap? temp : indices[ixj];
-	  
-    }
-    if ((i&k)!=0) {
-      /* Sort descending */
-	   uint temp = indices[i];
-	   bool swap = distances[indices[i]]>distances[indices[ixj]];
-	   indices[i] = swap ? indices[ixj] : indices[i];
-	   indices[ixj] = swap ? temp:indices[ixj];
-    }
-}
+    bool swap = (i&k)!=0;
+	swap = swap?distances[indices[i]]>distances[indices[ixj]]:distances[indices[i]]<distances[indices[ixj]];
+	//swap = ((ixj)>i)?swap:false;
+	uint temp = swap?indices[i]:indices[ixj];
+	indices[i] = swap?indices[ixj]:indices[i];
+	indices[ixj] = temp;
+  }
 }
