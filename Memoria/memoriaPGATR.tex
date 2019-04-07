@@ -103,33 +103,17 @@ Para las pruebas se han realizado varias ejecuciones en las que se ha alterado e
 Las pruebas se han realizado con un número de partículas de 1024x1024.\\
 
 Las especificaciones del equipo de pruebas son las siguientes:
+\begin{itemize}
+  \item Procesador: AMD Ryzen 1600X 3.6GHz
+  \item Memoria RAM: 16GB DDR4 3000Mhz
+  \item Tarjeta gráfica: Nvidia GTX 1060 6GB
+\end{itemize}
 
-\subsection{Media de resultados por ejecución}
-\begin{tikzpicture}
-\begin{axis}[
-	x tick label style={
-		/pgf/number format/1000 sep=},
-	ylabel=Frametime(ms),
-	enlargelimits=0.05,
-	legend style={at={(0.5,-0.1)},
-	anchor=north,legend columns=-1},
-	ybar interval=0.7,
-]
-\addplot
-	coordinates {(16,8.225863) (128,8.225863)
-	 (512,8.225863)};
-\addplot
-	coordinates {(16,8.225863) (128,8.225863)
-	 (512,8.225863)};
-\addplot
-	coordinates {(16,8.225863) (128,8.225863)
-	 (512,8.225863)};
-\addplot
-	coordinates {(16,8.225863) (128,8.225863)
-	 (512,8.225863)};
-\legend{Total,Físicas,Ordenación,Render}
-\end{axis}
-\end{tikzpicture}
+\subsection{Media de resultados por ejecución}\begin{figure}[h!tbp]
+\centering
+\includegraphics[width=.8\linewidth]{img/hist.png}
+\caption{Histograma de las medias de tiempos}
+\end{figure}
 
 \subsection{Tablas de resultados}
 
