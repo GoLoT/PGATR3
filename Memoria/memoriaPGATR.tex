@@ -10,6 +10,7 @@
 \usepackage{listings}
 \usepackage{subfig}
 \usepackage{cite}
+\usepackage{pgfplots}
 
 \addtolength{\oddsidemargin}{-.300in}
 \addtolength{\evensidemargin}{-.300in}
@@ -96,6 +97,33 @@ Presionando la tecla \textbf{L} se muestran por consola las estadísticas de la 
 La cámara se puede manipular mediante las teclas \textbf{W}, \textbf{A}, \textbf{S}, \textbf{D} y con el movimiento del ratón mientras se mantiene presionado el botón izquierdo. Además se puede alterar la elevación de la cámara utilizando la tecla \textbf{Espacio} para ascender y \textbf{Z} para descender.
 
 \section{Análisis de resultados}
-
+\subsection{Media de resultados por ejecución}
+\centering {
+\begin{tikzpicture}
+\begin{axis}[
+	x tick label style={
+		/pgf/number format/1000 sep=},
+	ylabel=Frametime(ms),
+	enlargelimits=0.05,
+	legend style={at={(0.5,-0.1)},
+	anchor=north,legend columns=-1},
+	ybar interval=0.7,
+]
+\addplot
+	coordinates {(16,8.225863) (128,8.225863)
+	 (512,8.225863)};
+\addplot
+	coordinates {(16,8.225863) (128,8.225863)
+	 (512,8.225863)};
+\addplot
+	coordinates {(16,8.225863) (128,8.225863)
+	 (512,8.225863)};
+\addplot
+	coordinates {(16,8.225863) (128,8.225863)
+	 (512,8.225863)};
+\legend{Total,Físicas,Ordenación,Render}
+\end{axis}
+\end{tikzpicture}
+}
 
 \end{document}
