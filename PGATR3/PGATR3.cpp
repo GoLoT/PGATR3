@@ -549,7 +549,7 @@ void SortParticles()
 	}
 }
 
-  //std::cout << "Test de ordenacion: " << (TestOrder()?"Pasado":"Fallado") << std::endl;
+  std::cout << "Test de ordenacion: " << (TestOrder()?"Pasado":"Fallado") << std::endl;
 
 
   /*glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
@@ -782,7 +782,7 @@ bool TestOrder()
   for (int i = 1; i < NUM_PARTICLES; i++)
   {
     GLfloat act = distancesH[indicesH[i]];
-    if (act < last)
+    if (act > last)
     {
       std::cout << "Distancia incorrecta en " << i << " -> " << indicesH[i] << " Distancia: " << act << " < " << last << std::endl;
       free(distancesH);
