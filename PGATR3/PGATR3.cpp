@@ -549,7 +549,7 @@ void SortParticles()
 	}
 }
 
-  std::cout << "Test de ordenacion: " << (TestOrder()?"Pasado":"Fallado") << std::endl;
+  //std::cout << "Test de ordenacion: " << (TestOrder()?"Pasado":"Fallado") << std::endl;
 
 
   /*glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
@@ -778,10 +778,10 @@ bool TestOrder()
 	GLuint* indices = (GLuint*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
 	memcpy(indicesH, indices, NUM_PARTICLES * sizeof(GLuint));
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-  GLfloat last = distancesH[0];
+  GLfloat last = distancesH[indicesH[0]];
   for (int i = 1; i < NUM_PARTICLES; i++)
   {
-    GLfloat act = distancesH[i];
+    GLfloat act = distancesH[indicesH[i]];
     if (act < last)
     {
       std::cout << "Distancia incorrecta en " << i << " -> " << indicesH[i] << " Distancia: " << act << " < " << last << std::endl;

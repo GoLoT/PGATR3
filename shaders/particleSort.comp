@@ -22,22 +22,22 @@ void main() {
 
   /* The threads with the lowest ids sort the array. */
   if ((ixj)>i) {
-    if ((i&k)==0) {
+    if ((i&k)!=0) {
       /* Sort ascending */
-      if (distances[i]>distances[ixj]) {
+      if (distances[indices[i]]>distances[indices[ixj]]) {
         /* exchange(i,ixj); */
-        float temp = distances[i];
-        distances[i] = distances[ixj];
-        distances[ixj] = temp;
+        uint temp = indices[i];
+        indices[i] = indices[ixj];
+        indices[ixj] = temp;
       }
     }
-    if ((i&k)!=0) {
+    if ((i&k)==0) {
       /* Sort descending */
-      if (distances[i]<distances[ixj]) {
+      if (distances[indices[i]]<distances[indices[ixj]]) {
         /* exchange(i,ixj); */
-        float temp = distances[i];
-        distances[i] = distances[ixj];
-        distances[ixj] = temp;
+        uint temp = indices[i];
+        indices[i] = indices[ixj];
+        indices[ixj] = temp;
       }
     }
   }
