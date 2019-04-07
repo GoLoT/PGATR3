@@ -344,11 +344,11 @@ void InitSortingShader()
 
   glGenBuffers(1, &particleSort.distanceSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(GLfloat), NULL, GL_DYNAMIC_COPY);
 
   glGenBuffers(1, &particleSort.indexSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(GLuint), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(GLuint), NULL, GL_DYNAMIC_COPY);
 
   GLuint* indices = (GLuint*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_PARTICLES * sizeof(GLuint), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
   for (int i = 0; i < NUM_PARTICLES; i++)
@@ -366,15 +366,15 @@ void InitSSBO()
 {
   glGenBuffers(1, &particleCompute.positionSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.positionSSBO);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(pos), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(pos), NULL, GL_DYNAMIC_COPY);
 
   glGenBuffers(1, &particleCompute.velocitySSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.velocitySSBO);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(vel), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(vel), NULL, GL_DYNAMIC_COPY);
 
   glGenBuffers(1, &particleCompute.colorSSBO);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleCompute.colorSSBO);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(color), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, NUM_PARTICLES * sizeof(color), NULL, GL_DYNAMIC_COPY);
 
   ResetSimulation();
 }
@@ -445,7 +445,7 @@ void RenderFunction(void)
 	  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleCompute.inColor, particleCompute.colorSSBO);
 
 	  glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
-	  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	  //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   }
   ProfilerParticles();
@@ -513,7 +513,7 @@ void SortParticles()
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, particleSort.inIndices, particleSort.indexSSBO);
 
   glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
-  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+  //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	
   /*glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.distanceSSBO);
   GLfloat* distances = (GLfloat*)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
@@ -550,7 +550,7 @@ void SortParticles()
 		      glUniform1ui(particleSort.uJ, j);
 
       glDispatchCompute(NUM_PARTICLES/WORK_GROUP_SIZE,1,1);
-	  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	  //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	}
 }
 
