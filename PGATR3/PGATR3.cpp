@@ -747,6 +747,7 @@ void InitProfiler()
 
 void ProfilerRender()
 {
+  glFinish();
   unsigned long int oldTime = frameProfiling.lastTime;
   frameProfiling.lastTime = (unsigned long) CurrentTimeMicroseconds();
   frameProfiling.renderTimes[frameProfiling.offset++] = frameProfiling.lastTime - oldTime;
@@ -756,6 +757,7 @@ void ProfilerRender()
 
 void ProfilerParticles()
 {
+  glFinish();
 	unsigned long int oldTime = frameProfiling.lastTime;
 	frameProfiling.lastTime = (unsigned long)CurrentTimeMicroseconds();
 	frameProfiling.particlesTimes[frameProfiling.offset] = frameProfiling.lastTime - oldTime;
@@ -763,6 +765,7 @@ void ProfilerParticles()
 
 void ProfilerSort()
 {
+  glFinish();
 	unsigned long int oldTime = frameProfiling.lastTime;
 	frameProfiling.lastTime = (unsigned long)CurrentTimeMicroseconds();
 	frameProfiling.sortTimes[frameProfiling.offset] = frameProfiling.lastTime - oldTime;
@@ -777,17 +780,18 @@ void PrintProfilerStats()
   for (i = 0; i < 50; i++)
   {
     sumRender += frameProfiling.renderTimes[i];
-	sumParticles += frameProfiling.particlesTimes[i];
-	sumSort += frameProfiling.sortTimes[i];
+	  sumParticles += frameProfiling.particlesTimes[i];
+	  sumSort += frameProfiling.sortTimes[i];
   }
   float meanRender = ((float)sumRender/ (float)i) / 1000.0f;
   float meanParticles = ((float)sumParticles / (float)i) / 1000.0f;
   float meanSort = ((float)sumSort / (float)i) / 1000.0f;
   float totalFrameTime = meanRender + meanParticles + meanSort;
-  std::cout << "Media de frametime: " << totalFrameTime << std::endl << "Media de framerate: " << 1000.0f / totalFrameTime << std::endl;
+  std::cout << "Media de frametime: " << totalFrameTime << std::endl;
   std::cout << "\tMedia de particulas: " << meanParticles << std::endl;
   std::cout << "\tMedia de ordenamiento: " << meanSort << std::endl;
   std::cout << "\tMedia de render: " << meanRender << std::endl;
+  std::cout << "Media de framerate: " << 1000.0f / totalFrameTime << std::endl << std::endl;
 }
 
 inline const long long CurrentTimeMicroseconds()
