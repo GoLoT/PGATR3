@@ -35,7 +35,9 @@ El objetivo de esta práctica consiste en la implementación de un modelo de par
 \section{Aplicación cliente}
 La aplicación se ha implementado en C++ partiendo de un proyecto vacío en el que se han añadido las librerías necesarias para el desarrollo. Se ha utilizado \textit{freeGLUT} para la inicialización del contexto, \textit{GLEW} para la inicialización de extensiones, \textit{GLM} para las funciones matemáticas y estructuras de datos algebraicas, y \textit{FreeImage} para la carga de texturas, aunque finalmente no se ha cargado ninguna textura en el proyecto.\\
 
-El proyecto se divide en funciones de inicialización, funciones de cómputo y funciones de renderizado que son llamadas en los puntos de ejecución donde son necesarias. Además se emplean estructuras de datos para almacenar la información correspondiente a los programas utilizados.
+El proyecto se divide en funciones de inicialización, funciones de cómputo y funciones de renderizado que son llamadas en los puntos de ejecución donde son necesarias. Además se emplean estructuras de datos para almacenar la información correspondiente a los programas utilizados.\\
+
+Adicionalmente se ha añadido una comprobación para que la ejecución termine si se detecta que el tamaño de WorkGroup supera el límite devuelto por el driver.
 
 \section{Sistema de partículas}
 El sistema de partículas que se ha implementado es el propuesto por Mike Bailey, que incluye solamente colisiones entre las partículas y una esfera definida mediante su posición y radio. Opcionalmente podía extenderse este sistema, pero nosotros hemos optado por la implementación de ordenación y renderizado con transparencia.\\
