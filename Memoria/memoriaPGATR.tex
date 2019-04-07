@@ -97,8 +97,14 @@ Presionando la tecla \textbf{L} se muestran por consola las estadísticas de la 
 La cámara se puede manipular mediante las teclas \textbf{W}, \textbf{A}, \textbf{S}, \textbf{D} y con el movimiento del ratón mientras se mantiene presionado el botón izquierdo. Además se puede alterar la elevación de la cámara utilizando la tecla \textbf{Espacio} para ascender y \textbf{Z} para descender.
 
 \section{Análisis de resultados}
+\subsection{Metodología}
+Para las pruebas se han realizado varias ejecuciones en las que se ha alterado el parámetro del tamaño de WorkGroup de las shaders, se han tomado 10 medidas para ejecuciones con cada uno de los parámetros y se han calculado las medias para cada ejecución. Las medidas se han desglosado entre el tiempo dedicado al cálculo de físicas, el tiempo de ordenamiento de las partículas y el tiempo de dibujado de las partículas.\\
+
+Las pruebas se han realizado con un número de partículas de 1024x1024.\\
+
+Las especificaciones del equipo de pruebas son las siguientes:
+
 \subsection{Media de resultados por ejecución}
-\centering {
 \begin{tikzpicture}
 \begin{axis}[
 	x tick label style={
@@ -124,6 +130,72 @@ La cámara se puede manipular mediante las teclas \textbf{W}, \textbf{A}, \textb
 \legend{Total,Físicas,Ordenación,Render}
 \end{axis}
 \end{tikzpicture}
-}
+
+\subsection{Tablas de resultados}
+
+\begin{tabular}{ |p{1.3cm}||p{2cm}|p{2cm}|p{2cm}| }
+ \hline
+ \multicolumn{4}{|c|}{Frametimes para tamaño de WorkGroup 16} \\
+ \hline
+ Iteración& Físicas&Ordenación&Rendering\\
+ \hline
+1   & 0.35158&117.294&4.47528\\
+2&0.50754&117.188&4.38544\\
+3&0.56222&117.225&4.27188\\
+4&0.55212&117.019&4.16744\\
+5&0.56998&117.021&3.96658\\
+6&0.5778&116.986&3.76458\\
+7&0.62348&116.977&3.73252\\
+8&0.66744&116.97&3.70164\\
+9&0.70276&116.96&3.60998\\
+10&0.71646&116.71&3.43508\\
+Media&0.583138&117.035&3.951042\\
+ \hline
+\end{tabular}\\\vspace{1cm}
+
+\begin{tabular}{ |p{1.3cm}||p{2cm}|p{2cm}|p{2cm}| }
+ \hline
+ \multicolumn{4}{|c|}{Frametimes para tamaño de WorkGroup 128} \\
+ \hline
+ Iteración& Físicas&Ordenación&Rendering\\
+ \hline
+1&0.49302&110.307&4.32266\\
+2&0.54266&110.307&4.27152\\
+3&0.55578&110.156&4.02068\\
+4&0.5653&110.002&3.75822\\
+5&0.5773&109.968&3.69862\\
+6&0.58566&109.99&3.57418\\
+7&0.62238&110.002&3.38232\\
+8&0.64676&109.803&3.18426\\
+9&0.67342&109.816&3.07414\\
+10&0.70036&109.83&2.971\\
+Media&0.596264&110.0181&3.62576\\
+ \hline
+\end{tabular}\\\vspace{1cm}
+
+\begin{tabular}{ |p{1.3cm}||p{2cm}|p{2cm}|p{2cm}| }
+ \hline
+ \multicolumn{4}{|c|}{Frametimes para tamaño de WorkGroup 512} \\
+ \hline
+ Iteración& Físicas&Ordenación&Rendering\\
+ \hline
+1&0.56121&109.93&4.07228\\
+2&0.54918&109.948&4.15572\\
+3&0.55176&109.77&3.81522\\
+4&0.55892&109.702&3.72278\\
+5&0.60886&109.705&3.59522\\
+6&0.64248&109.755&3.3695\\
+7&0.6717&109.786&3.2267\\
+8&0.67832&109.58&3.03026\\
+9&0.67306&109.57&2.9145\\
+10&0.57638&109.986&4.27416\\
+Media&0.612295556&109.7557778&3.567117778\\
+ \hline
+\end{tabular}
+
+\subsection{Conclusiones}
+De los datos obtenidos hemos concluído que el grueso del tiempo de ejecución se debe a la ordenación de partículas. Nuestra implementación de bitonic no es la más óptima, haciendo accesos a memoria global constantes, por lo que el tiempo de ejecución de la ordenación corresponde a más de un 90\% del tiempo total de cada frame.\\
+
+Además se puede observar que al variar el tamaño del WorkGroup hay ligeras variaciones en el tiempo de ejecución, afectando principalmente a la etapa de ordenación. Cuando el tamaño se incrementa se reducen los tiempos de ordenación, aunque el tiempo de físicas parece no cambiar y los resultados entran dentro del margen de error. En el caso de la etapa de dibujado no hay efecto, ya que el tamaño de grupo no interviene en el dibujado.
 
 \end{document}
