@@ -48,7 +48,9 @@ void ResetSimulation();
 void SortParticles();
 void InitSortingShader();
 void InitProfiler();
-void ProfilerNewFrame();
+void ProfilerRender();
+void ProfilerSort();
+void ProfilerParticles();
 const long long CurrentTimeMicroseconds();
 void PrintProfilerStats();
 bool TestOrder();
@@ -114,7 +116,9 @@ struct ParticleSort
 
 struct FrameProfiling
 {
-  unsigned int frametimes[50];
+  unsigned int particlesTimes[50];
+  unsigned int sortTimes[50];
+  unsigned int renderTimes[50];
   unsigned int offset;
   unsigned long int lastTime;
 } frameProfiling;
@@ -444,10 +448,11 @@ void RenderFunction(void)
 	  glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   }
-
+  ProfilerParticles();
   if (particleSort.enabled) {
     SortParticles();
   }
+  ProfilerSort();
 
   glUseProgram(particleShading.program);
   glEnable(GL_BLEND);
@@ -490,7 +495,7 @@ void RenderFunction(void)
 
   glutSwapBuffers();
 
-  ProfilerNewFrame();
+  ProfilerRender();
 }
 
 void SortParticles()
@@ -549,7 +554,7 @@ void SortParticles()
 	}
 }
 
-  std::cout << "Test de ordenacion: " << (TestOrder()?"Pasado":"Fallado") << std::endl;
+  //std::cout << "Test de ordenacion: " << (TestOrder()?"Pasado":"Fallado") << std::endl;
 
 
   /*glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleSort.indexSSBO);
@@ -732,30 +737,57 @@ void mouseMotionFunc(int x, int y)
 
 void InitProfiler()
 {
-  for (int i = 0; i < 50; i++)
-    frameProfiling.frametimes[i] = 0;
+	for (int i = 0; i < 50; i++) {
+		frameProfiling.renderTimes[i] = 0;
+		frameProfiling.particlesTimes[i] = 0;
+		frameProfiling.sortTimes[i] = 0;
+	}
   frameProfiling.lastTime = (unsigned long) CurrentTimeMicroseconds();
 }
 
-void ProfilerNewFrame()
+void ProfilerRender()
 {
   unsigned long int oldTime = frameProfiling.lastTime;
   frameProfiling.lastTime = (unsigned long) CurrentTimeMicroseconds();
-  frameProfiling.frametimes[frameProfiling.offset++] = frameProfiling.lastTime - oldTime;
+  frameProfiling.renderTimes[frameProfiling.offset++] = frameProfiling.lastTime - oldTime;
   if (frameProfiling.offset >= 50)
     frameProfiling.offset = 0;
+}
+
+void ProfilerParticles()
+{
+	unsigned long int oldTime = frameProfiling.lastTime;
+	frameProfiling.lastTime = (unsigned long)CurrentTimeMicroseconds();
+	frameProfiling.particlesTimes[frameProfiling.offset] = frameProfiling.lastTime - oldTime;
+}
+
+void ProfilerSort()
+{
+	unsigned long int oldTime = frameProfiling.lastTime;
+	frameProfiling.lastTime = (unsigned long)CurrentTimeMicroseconds();
+	frameProfiling.sortTimes[frameProfiling.offset] = frameProfiling.lastTime - oldTime;
 }
 
 void PrintProfilerStats()
 {
   int i;
-  unsigned long int sum = 0;
+  unsigned long int sumRender = 0;
+  unsigned long int sumParticles = 0;
+  unsigned long int sumSort = 0;
   for (i = 0; i < 50; i++)
   {
-    sum += frameProfiling.frametimes[i];
+    sumRender += frameProfiling.renderTimes[i];
+	sumParticles += frameProfiling.particlesTimes[i];
+	sumSort += frameProfiling.sortTimes[i];
   }
-  float mean = ((float)sum / (float)i) / 1000.0f;
-  std::cout << "Media de frametime: " << mean << std::endl << "Media de framerate: " << 1000.0f / mean << std::endl;
+  float meanRender = ((float)sumRender/ (float)i) / 1000.0f;
+  float meanParticles = ((float)sumParticles / (float)i) / 1000.0f;
+  float meanSort = ((float)sumSort / (float)i) / 1000.0f;
+  float totalFrameTime = meanRender + meanParticles + meanSort;
+  std::cout << "Media de frametime: " << totalFrameTime << std::endl << "Media de framerate: " << 1000.0f / totalFrameTime << std::endl;
+  std::cout << "\tMedia de particulas: " << meanParticles << std::endl;
+  std::cout << "\tMedia de ordenamiento: " << meanSort << std::endl;
+  std::cout << "\tMedia de render: " << meanRender << std::endl;
 }
 
 inline const long long CurrentTimeMicroseconds()
